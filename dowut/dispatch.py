@@ -40,7 +40,7 @@ def make_dispatcher(display, handlers):
     handler_cache = defaultdict(list)
 
     def fire_handlers(event):
-        window = get_active_window()  # display.get_input_focus().focus
+        window = get_active_window()
         if not window:
             return
 

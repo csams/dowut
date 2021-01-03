@@ -6,7 +6,8 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 entry_points = {
     "console_scripts": [
-        "dowut = dowut.vis:main"
+        "dowut = dowut.vis:main",
+        "dowutd = dowut.__main__:main"
     ]
 }
 
@@ -14,6 +15,7 @@ runtime = set([
     "matplotlib==3.3.3",
     "pandas==1.2.0",
     "python-daemon==2.2.4",
+    "seaborn==0.11.1",
     "xlib==0.21",
 ])
 

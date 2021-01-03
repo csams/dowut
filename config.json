@@ -1,0 +1,17 @@
+{
+    "chat": [
+        ".*chat.google.com.*",
+        ".*Discord.*",
+        ".*Slack.*"
+    ],
+    "email": [
+        ".*Red Hat Mail.*"
+    ],
+    "youtube": [
+        ".*YouTube.*"
+    ],
+    "video meeting": [
+        "Meet.*",
+        "Blue Jeans.*"
+    ]
+}

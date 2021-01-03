@@ -16,10 +16,16 @@ class ActivityRecorder(EventHandler):
         NET_ACTIVE_WINDOW = disp.intern_atom("_NET_ACTIVE_WINDOW")
 
         # property that holds the name of the window
+        self._NET_WM_DESKTOP = disp.intern_atom("_NET_WM_DESKTOP")
         self._NET_WM_NAME = disp.intern_atom("_NET_WM_NAME")
         self._WM_NAME = disp.intern_atom("_WM_NAME")
 
-        self._atoms = (NET_ACTIVE_WINDOW, self._NET_WM_NAME, self._WM_NAME)
+        self._atoms = (
+            NET_ACTIVE_WINDOW,
+            self._NET_WM_DESKTOP,
+            self._NET_WM_NAME,
+            self._WM_NAME
+        )
 
         data_dir = os.path.join(config_dir, "data")
         fieldnames = [
