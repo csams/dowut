@@ -132,3 +132,5 @@ perf.py
 parse.py
 
 .vscode
+
+*.swp

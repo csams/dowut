@@ -11,14 +11,16 @@ entry_points = {
 }
 
 runtime = set([
+    "matplotlib==3.3.3",
     "pandas==1.2.0",
+    "python-daemon==2.2.4",
     "xlib==0.21",
-    "python-daemon==2.2.4"
 ])
 
 develop = set([
     "coverage",
     "flake8",
+    "ipython",
     "pytest",
     "pytest-cov",
     "setuptools",
