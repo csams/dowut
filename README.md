@@ -47,6 +47,9 @@ Use `xprop` to see the properies of any X window.
 }
 ```
 
-All data files are loaded by default. To specify a subset, use the `-f` option
+All data files are loaded by default. To specify a subset, use the `-d` option
 to give one or more direct paths to the individual data files stored in
 `$HOME/.config/dowut/data`).
+
+The default grouping frequency is 60 minutes. To change it use the `-f` option
+and provide a valid freq as described [in the pandas documentation](https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases).
