@@ -51,6 +51,7 @@ def plot_focus_changes(df, ax, freq):
     ax.tick_params(axis="x", which="both", labelrotation=45)
     ax.grid(axis="y")
     ax.set_ylabel("percentage")
+    ax.legend(loc="upper left")
 
 
 def plot_active(df, ax, freq):
@@ -68,6 +69,7 @@ def plot_active(df, ax, freq):
     ax.tick_params(axis="x", which="both", labelrotation=45)
     ax.grid(axis="y")
     ax.set_ylabel("minutes")
+    ax.legend(loc="upper left")
 
 
 def plot_category_totals(df, ax):

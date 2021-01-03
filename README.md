@@ -52,4 +52,11 @@ to give one or more direct paths to the individual data files stored in
 `$HOME/.config/dowut/data`).
 
 The default grouping frequency is 60 minutes. To change it use the `-f` option
-and provide a valid freq as described [in the pandas documentation](https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases).
+and provide a valid freq as described in the [pandas documentation](https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases).
+
+Example
+=======
+```
+dowut -c config.json -f 1H
+```
+![Example](https://github.com/csams/dowut/blob/main/activity.png)
