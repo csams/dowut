@@ -1,4 +1,5 @@
 import argparse
+import lockfile
 import os
 import signal
 import sys
@@ -14,10 +15,8 @@ def parse_args():
     return p.parse_args()
 
 
-def main():
+def main(config_dir):
     handlers = None
-    config_dir = os.path.join(os.environ.get("HOME"), ".config", "dowut")
-    os.makedirs(config_dir, exist_ok=True)
 
     plugin_dir = os.path.join(config_dir, "plugins")
     sys.path.insert(0, plugin_dir)
@@ -42,11 +41,14 @@ def main():
 
 
 args = parse_args()
+config_dir = os.path.join(os.environ.get("HOME"), ".config", "dowut")
+os.makedirs(config_dir, exist_ok=True)
 if args.daemonize:
-    context = DaemonContext()
+    lf = lockfile.FileLock(os.path.join(config_dir, "dowut.pid"))
+    context = DaemonContext(pidfile=lf)
     signal_map = {signal.SIGTERM: terminate}
     context.signal_map = signal_map
     with context:
-        main()
+        main(config_dir)
 else:
-    main()
+    main(config_dir)
