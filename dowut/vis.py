@@ -108,6 +108,7 @@ def main():
     cat_dict = load_config(args.categories) if args.categories else {}
     freq = args.freq
     df = categorize(df, cat_dict)
+    df = df[~df.category.str.match("(?i).*dialog")]
 
     fig, axes = plt.subplots(3)
 
