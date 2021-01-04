@@ -24,7 +24,7 @@ def parse_args():
     return p.parse_args()
 
 
-def load_df(paths=None):
+def load_df(paths=None, freq="60min"):
     if not paths:
         home = os.environ.get("HOME")
         path = os.path.join(home, ".config", "dowut", "data", "data_*.csv")
@@ -33,6 +33,20 @@ def load_df(paths=None):
 
     df.sort_values("time", inplace=True)
     df.set_index("time", drop=False, inplace=True)
+
+    # jam in indexes at the exact frequency boundaries to
+    # deltas calculate correctly later on.
+    l = df.time.min().floor(freq)
+    u = df.time.max().ceil(freq)
+    r = pd.date_range(l, u, freq=freq, closed="left")
+    s = pd.Series(r)
+    idx = pd.concat([s, df.time]).sort_values()
+    df = df.reindex(idx)
+    df["time"] = df.index
+
+    df["event_type"].fillna("Synthetic", inplace=True)
+    df.fillna(method="ffill", inplace=True)
+    df.fillna("Synthetic", inplace=True)
     return df
 
 
@@ -103,7 +117,9 @@ def categorize(df, conf):
 
 def main():
     args = parse_args()
-    df = load_df(args.data)
+    freq = args.freq
+
+    df = load_df(args.data, freq=freq)
 
     if args.start:
         df = df[df.time >= args.start]
@@ -118,17 +134,14 @@ def main():
     cat_dict = load_categories(args.categories)
     df = categorize(df, cat_dict)
 
-    fig, axes = plt.subplots(3)
-
-    freq = args.freq
+    fig, axes = plt.subplots(2)
 
     max_idle = 10
-    plot_active(df, axes[0], freq, "Time Allocation", normalize=True, max_idle=max_idle)
-    plot_active(df, axes[1], freq, "Active Minutes", max_idle=max_idle)
-    # plot_active_totals(df, axes[2], max_idle=max_idle)
+#    plot_active(df, axes[0], freq, "Time Allocation", normalize=True, max_idle=max_idle)
+    plot_active(df, axes[0], freq, "Active Minutes", max_idle=max_idle)
 
-    focus_changes = df[df.event_type == "PropertyNotify"]
-    plot_active(focus_changes, axes[2], freq, "Focus", normalize=True)
+    focus_changes = df[df.event_type.str.match("PropertyNotify|Synthetic")]
+    plot_active(focus_changes, axes[1], freq, "Focus", normalize=True)
 
     fig.set_tight_layout(True)
 

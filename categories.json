@@ -14,7 +14,7 @@
         "Meet.*",
         "Blue Jeans.*"
     ],
-    "Misc": [
+    "misc": [
         ".*(?i)dialog.*",
         ".*(?i)blueman-manager.*",
         ".*(?i)nm-applet.*",
