@@ -47,10 +47,12 @@ def load_categories(path):
         return {}
 
 
-def plot_active(df, ax, freq, normalize=False):
+def plot_active(df, ax, freq, title, normalize=False, max_idle=None):
     df = df.copy()
-    df["delta"] = df.time.diff().apply(lambda d: d.total_seconds() / 60)
-    active = df[df.delta <= 10]
+
+    delta = df.shift(-1).time - df.time
+    df["delta"] = delta.apply(lambda d: d.total_seconds() / 60)
+    active = df[df.delta <= max_idle] if max_idle else df
 
     grouper = pd.Grouper(key="time", freq=freq)
     sums = active.groupby([grouper, "category"]).delta.sum().unstack()
@@ -62,22 +64,23 @@ def plot_active(df, ax, freq, normalize=False):
 
     f.index = [i.strftime("%a %H:%M") for i in f.index]
 
-    f.plot(kind="bar", stacked=True, ax=ax, title="Activity")
+    f.plot(kind="bar", stacked=True, ax=ax, title=title)
     ax.tick_params(axis="x", which="both", labelrotation=45)
     ax.grid(axis="y")
     ax.set_ylabel(label)
     ax.legend(loc="upper left")
 
 
-def plot_active_totals(df, ax):
+def plot_active_totals(df, ax, max_idle=None):
     df = df.copy()
-    df["delta"] = df.time.diff().apply(lambda d: d.total_seconds() / 60)
-    active = df[df.delta <= 10]
+    delta = df.shift(-1).time - df.time
+    df["delta"] = delta.apply(lambda d: d.total_seconds() / 60)
+    active = df[df.delta <= max_idle] if max_idle else df
 
     sums = active.groupby("category").delta.sum()
     f = sums.fillna(0.0)
 
-    f.plot(kind="bar", ax=ax)
+    f.plot(kind="bar", ax=ax, title="Total Active Minutes")
     ax.tick_params(axis="x", which="both", labelrotation=45)
     ax.grid(axis="y")
     ax.set_ylabel("total minutes")
@@ -113,15 +116,19 @@ def main():
         df = df.between_time(s, e)
 
     cat_dict = load_categories(args.categories)
-    freq = args.freq
     df = categorize(df, cat_dict)
-    df = df[~df.category.str.match("(?i).*dialog")]
 
     fig, axes = plt.subplots(3)
 
-    plot_active(df, axes[0], freq, normalize=True)
-    plot_active(df, axes[1], freq)
-    plot_active_totals(df, axes[2])
+    freq = args.freq
+
+    max_idle = 10
+    plot_active(df, axes[0], freq, "Time Allocation", normalize=True, max_idle=max_idle)
+    plot_active(df, axes[1], freq, "Active Minutes", max_idle=max_idle)
+    # plot_active_totals(df, axes[2], max_idle=max_idle)
+
+    focus_changes = df[df.event_type == "PropertyNotify"]
+    plot_active(focus_changes, axes[2], freq, "Focus", normalize=True)
 
     fig.set_tight_layout(True)
 

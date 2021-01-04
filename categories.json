@@ -13,5 +13,11 @@
     "video meeting": [
         "Meet.*",
         "Blue Jeans.*"
+    ],
+    "Misc": [
+        ".*(?i)dialog.*",
+        ".*(?i)blueman-manager.*",
+        ".*(?i)nm-applet.*",
+        ".*(?i)matplotlib.*"
     ]
 }
