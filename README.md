@@ -65,6 +65,6 @@ documentation](https://pandas.pydata.org/pandas-docs/stable/user_guide/timeserie
 Example
 =======
 ```
-dowut -c config.json -f 1H
+dowut -b '8:00am 6:00pm' -c categories.json
 ```
 ![Example](https://github.com/csams/dowut/blob/main/activity.png)
