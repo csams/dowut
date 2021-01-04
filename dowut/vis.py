@@ -15,7 +15,12 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("-d", "--data", nargs="*", help="Data files to load.")
     p.add_argument("-c", "--categories", help="Category dictionary (JSON).")
-    p.add_argument("-f", "--freq", help="Grouping frequency.", default="60min")
+    p.add_argument("-s", "--start", help="Start in YYYY-MM-DD format.")
+    p.add_argument("-e", "--end", help="End in YYYY-MM-DD format.")
+    p.add_argument("-b", "--between", help="Times in 'HH:MM HH:MM' format.")
+
+    freq_help = "Grouping frequency. See pandas freq docs for format."
+    p.add_argument("-f", "--freq", help=freq_help, default="60min")
     return p.parse_args()
 
 
@@ -27,15 +32,22 @@ def load_df(paths=None):
     df = pd.concat(pd.read_csv(path, parse_dates=["time"]) for path in paths)
 
     df.sort_values("time", inplace=True)
+    df.set_index("time", drop=False, inplace=True)
     return df
 
 
-def load_config(path):
-    with open(path) as f:
-        return json.load(f)
+def load_categories(path):
+    if not path:
+        home = os.environ.get("HOME")
+        path = os.path.join(home, ".config", "dowut", "categories.json")
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except:
+        return {}
 
 
-def plot_focus_changes(df, ax, freq):
+def plot_active(df, ax, freq, normalize=False):
     df = df.copy()
     df["delta"] = df.time.diff().apply(lambda d: d.total_seconds() / 60)
     active = df[df.delta <= 10]
@@ -43,36 +55,21 @@ def plot_focus_changes(df, ax, freq):
     grouper = pd.Grouper(key="time", freq=freq)
     sums = active.groupby([grouper, "category"]).delta.sum().unstack()
     f = sums.fillna(0.0)
-    f = f.apply(lambda x: 100 * x / x.sum(), axis=1)  # normalize
+    label = "minutes"
+    if normalize:
+        f = f.apply(lambda x: 100 * x / x.sum(), axis=1)  # normalize
+        label = "percentage"
 
     f.index = [i.strftime("%a %H:%M") for i in f.index]
 
     f.plot(kind="bar", stacked=True, ax=ax, title="Activity")
     ax.tick_params(axis="x", which="both", labelrotation=45)
     ax.grid(axis="y")
-    ax.set_ylabel("percentage")
+    ax.set_ylabel(label)
     ax.legend(loc="upper left")
 
 
-def plot_active(df, ax, freq):
-    df = df.copy()
-    df["delta"] = df.time.diff().apply(lambda d: d.total_seconds() / 60)
-    active = df[df.delta <= 10]
-
-    grouper = pd.Grouper(key="time", freq=freq)
-    sums = active.groupby([grouper, "category"]).delta.sum().unstack()
-    f = sums.fillna(0.0)
-
-    f.index = [i.strftime("%a %H:%M") for i in f.index]
-
-    f.plot(kind="bar", ax=ax, stacked=True)
-    ax.tick_params(axis="x", which="both", labelrotation=45)
-    ax.grid(axis="y")
-    ax.set_ylabel("minutes")
-    ax.legend(loc="upper left")
-
-
-def plot_category_totals(df, ax):
+def plot_active_totals(df, ax):
     df = df.copy()
     df["delta"] = df.time.diff().apply(lambda d: d.total_seconds() / 60)
     active = df[df.delta <= 10]
@@ -105,16 +102,26 @@ def main():
     args = parse_args()
     df = load_df(args.data)
 
-    cat_dict = load_config(args.categories) if args.categories else {}
+    if args.start:
+        df = df[df.time >= args.start]
+
+    if args.end:
+        df = df[df.time <= args.end]
+
+    if args.between:
+        s, e = args.between.split()
+        df = df.between_time(s, e)
+
+    cat_dict = load_categories(args.categories)
     freq = args.freq
     df = categorize(df, cat_dict)
     df = df[~df.category.str.match("(?i).*dialog")]
 
     fig, axes = plt.subplots(3)
 
-    plot_focus_changes(df, axes[0], freq)
+    plot_active(df, axes[0], freq, normalize=True)
     plot_active(df, axes[1], freq)
-    plot_category_totals(df, axes[2])
+    plot_active_totals(df, axes[2])
 
     fig.set_tight_layout(True)
 

@@ -25,7 +25,8 @@ is used. Otherwise, the second element of `WM_CLASS` is used.
 
 Use `xprop` to see the properies of any X window.
 
-`dowut -c <file>` will use the custom category mapping.
+`dowut -c <file>` will use the custom category mapping. You can put it at
+`$HOME/.config/dowut/categories.json` for it to be loaded automatically.
 
 ```json
 {
@@ -51,8 +52,15 @@ All data files are loaded by default. To specify a subset, use the `-d` option
 to give one or more direct paths to the individual data files stored in
 `$HOME/.config/dowut/data`).
 
-The default grouping frequency is 60 minutes. To change it use the `-f` option
-and provide a valid freq as described in the [pandas documentation](https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases).
+Alternatively, use `-s` or `-e` to specify start and end dates. Both are
+inclusive.
+
+You can also use `-b` to specify time ranges of each day: `dowut -b '8:00 17:00'`
+or `dowut -b '8:00am 5:00pm'`. Again, the ends are inclusive.
+
+The default grouping frequency is 60 minutes ("60min"). To change it use the
+`-f` option and provide a valid freq as described in the [pandas
+documentation](https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases).
 
 Example
 =======
