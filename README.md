@@ -70,9 +70,14 @@ The default grouping frequency is 60 minutes ("60min"). To change it use the
 `-f` option and provide a valid freq as described in the [pandas
 documentation](https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases).
 
-Example
-=======
+Examples
+========
 ```
-dowut -b '8:00am 6:00pm' -s 2021-01-04 -c categories.json
+dowut -b '8:00am 5:00pm' -s 2021-01-04 -c categories.json
 ```
-![Example](https://github.com/csams/dowut/blob/main/activity.png)
+![Hourly Example](https://github.com/csams/dowut/blob/main/activity.png)
+
+```
+dowut -b '8:00am 5:00pm' -f 1D -c categories.json
+```
+![Daily Example](https://github.com/csams/dowut/blob/main/activity2.png)
