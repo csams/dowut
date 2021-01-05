@@ -44,13 +44,19 @@ Use `xprop` to see the properies of any X window.
     "video meeting": [
         "Meet.*",
         "Blue Jeans.*"
+    ],
+    "misc": [
+        ".*(?i)dialog.*",
+        ".*(?i)blueman-manager.*",
+        ".*(?i)nm-applet.*",
+        ".*(?i)matplotlib.*"
     ]
 }
 ```
 
 All data files are loaded by default. To specify a subset, use the `-d` option
 to give one or more direct paths to the individual data files stored in
-`$HOME/.config/dowut/data`).
+`$HOME/.config/dowut/data`.
 
 Alternatively, use `-s` or `-e` to specify start and end dates. Both are
 inclusive.
