@@ -14,6 +14,8 @@ Install by cloning the project and pip installing it (python 3.6+ required).
 
 Start the daemon in the foreground with `dowutd` or in the background with
 `dowutd -d`. To stop the background process, find the PID and `kill -15 <pid>`.
+If you restart your window manager, you'll need to kill `dowutd` and restart
+it.
 
 The `dowut` command will display a breakdown of activity by hour and category.
 
@@ -71,6 +73,6 @@ documentation](https://pandas.pydata.org/pandas-docs/stable/user_guide/timeserie
 Example
 =======
 ```
-dowut -b '8:00am 6:00pm' -c categories.json
+dowut -b '8:00am 6:00pm' -s 2021-01-04 -c categories.json
 ```
 ![Example](https://github.com/csams/dowut/blob/main/activity.png)

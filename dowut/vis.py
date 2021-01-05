@@ -12,12 +12,18 @@ sns.set_style("dark")
 
 
 def parse_args():
-    p = argparse.ArgumentParser()
-    p.add_argument("-d", "--data", nargs="*", help="Data files to load.")
-    p.add_argument("-c", "--categories", help="Category dictionary (JSON).")
-    p.add_argument("-s", "--start", help="Start in YYYY-MM-DD format.")
-    p.add_argument("-e", "--end", help="End in YYYY-MM-DD format.")
+    description = """Measure how you spend time by tracking key presses and
+    changes to window focus or title."""
+    p = argparse.ArgumentParser(description=description)
+
     p.add_argument("-b", "--between", help="Times in 'HH:MM HH:MM' format.")
+    p.add_argument("-c", "--categories", help="Category dictionary (JSON).")
+    p.add_argument("-d", "--data", nargs="*", help="Data files to load.")
+    p.add_argument("-e", "--end", help="Date in YYYY-MM-DD format.")
+    p.add_argument("-s", "--start", help="Date in YYYY-MM-DD format.")
+
+    idle_help = "Max minutes between events before you're considered idle."
+    p.add_argument("-i", "--idle", help=idle_help, default=10, type=int)
 
     freq_help = "Grouping frequency. See pandas freq docs for format."
     p.add_argument("-f", "--freq", help=freq_help, default="60min")
@@ -34,8 +40,10 @@ def load_df(paths=None, freq="60min"):
     df.sort_values("time", inplace=True)
     df.set_index("time", drop=False, inplace=True)
 
-    # jam in indexes at the exact frequency boundaries to
-    # deltas calculate correctly later on.
+    # If a duration straddles a grouping boundary (say we group hourly and the
+    # event lasted from from 5:59 to 6:01), we need one minute allocated to the
+    # 5:00 hour and one minute to the 6:00 hour. To make the calculations more
+    # straightforward, we insert fake events at the grouping boundaries.
     l = df.time.min().floor(freq)
     u = df.time.max().ceil(freq)
     r = pd.date_range(l, u, freq=freq, closed="left")
@@ -44,9 +52,13 @@ def load_df(paths=None, freq="60min"):
     df = df.reindex(idx)
     df["time"] = df.index
 
-    df["event_type"].fillna("Synthetic", inplace=True)
+    # Insert a fake event type at "boundary" times. It inherits all values
+    # except event_type from the previous row. This ensures the last event from
+    # the previous group crosses the boundary while still having its duration
+    # correctly allocated to both groups.
+    df["event_type"].fillna("Fake", inplace=True)
     df.fillna(method="ffill", inplace=True)
-    df.fillna("Synthetic", inplace=True)
+    df.fillna("Fake", inplace=True)
     return df
 
 
@@ -66,16 +78,19 @@ def plot_active(df, ax, freq, title, normalize=False, max_idle=None):
 
     delta = df.shift(-1).time - df.time
     df["delta"] = delta.apply(lambda d: d.total_seconds() / 60)
-    active = df[df.delta <= max_idle] if max_idle else df
+    if max_idle:
+        df["delta"] = df["delta"].apply(lambda d: d if d <= max_idle else 0)
 
     grouper = pd.Grouper(key="time", freq=freq)
-    sums = active.groupby([grouper, "category"]).delta.sum().unstack()
+    sums = df.groupby([grouper, "category"]).delta.sum().unstack()
     f = sums.fillna(0.0)
     label = "minutes"
     if normalize:
         f = f.apply(lambda x: 100 * x / x.sum(), axis=1)  # normalize
         label = "percentage"
 
+    # I never got matplotlib formatters and locators to work.
+    # Just do it myself.
     f.index = [i.strftime("%a %H:%M") for i in f.index]
 
     f.plot(kind="bar", stacked=True, ax=ax, title=title)
@@ -136,11 +151,10 @@ def main():
 
     fig, axes = plt.subplots(2)
 
-    max_idle = 10
-#    plot_active(df, axes[0], freq, "Time Allocation", normalize=True, max_idle=max_idle)
+    max_idle = args.idle
     plot_active(df, axes[0], freq, "Active Minutes", max_idle=max_idle)
 
-    focus_changes = df[df.event_type.str.match("PropertyNotify|Synthetic")]
+    focus_changes = df[df.event_type.str.match("PropertyNotify|Fake")]
     plot_active(focus_changes, axes[1], freq, "Focus", normalize=True)
 
     fig.set_tight_layout(True)
