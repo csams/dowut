@@ -91,7 +91,7 @@ def plot_active(df, ax, freq, title, normalize=False, max_idle=None):
 
     # I never got matplotlib formatters and locators to work.
     # Just do it myself.
-    f.index = [i.strftime("%a %H:%M") for i in f.index]
+    f.index = [i.strftime("%a %m-%d %H:%M") for i in f.index]
 
     f.plot(kind="bar", stacked=True, ax=ax, title=title)
     ax.tick_params(axis="x", which="both", labelrotation=45)
